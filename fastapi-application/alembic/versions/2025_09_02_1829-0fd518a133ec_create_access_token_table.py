@@ -1,8 +1,8 @@
 """create access_token table
 
-Revision ID: a64a5c0c7658
-Revises: b23775f1507c
-Create Date: 2025-08-13 17:30:24.004229
+Revision ID: 0fd518a133ec
+Revises: 6ddf90016536
+Create Date: 2025-09-02 18:29:24.234524
 
 """
 
@@ -14,8 +14,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "a64a5c0c7658"
-down_revision: Union[str, Sequence[str], None] = "b23775f1507c"
+revision: str = "0fd518a133ec"
+down_revision: Union[str, Sequence[str], None] = "6ddf90016536"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -23,13 +23,13 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     op.create_table(
         "access_tokens",
+        sa.Column("user_id", sa.Integer(), nullable=False),
         sa.Column("token", sa.String(length=43), nullable=False),
         sa.Column(
             "created_at",
             fastapi_users_db_sqlalchemy.generics.TIMESTAMPAware(timezone=True),
             nullable=False,
         ),
-        sa.Column("user_id", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(
             ["user_id"],
             ["users.id"],
