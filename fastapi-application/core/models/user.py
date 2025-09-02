@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 from fastapi_users.db import SQLAlchemyBaseUserTable, SQLAlchemyUserDatabase
-
+from sqlalchemy.orm import relationship
 
 from core.types.user_id import UserIdType
 from .base import Base
@@ -12,6 +12,13 @@ if TYPE_CHECKING:
 
 
 class User(Base, IdIntPkMix, SQLAlchemyBaseUserTable[UserIdType]):
+
+    resumes = relationship(
+        "Resume",
+        back_populates="owner",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
 
     @classmethod
     def get_db(cls, session: "AsyncSession"):
