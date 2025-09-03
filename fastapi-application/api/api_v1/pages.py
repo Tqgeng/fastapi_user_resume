@@ -35,3 +35,9 @@ async def resumes_page(request: Request):
 @router.get("/resumes/new", response_class=HTMLResponse)
 async def resume_new_page(request: Request):
     return templates.TemplateResponse("resume_new.html", {"request": request})
+
+
+@router.get("/resumes/{resume_id}", response_class=HTMLResponse)
+async def resume_view_page(request: Request, resume_id: int):
+    # Шаблон сам загрузит данные через JS
+    return templates.TemplateResponse("resume_view.html", {"request": request})
