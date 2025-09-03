@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Мои резюме — Resume App{% endblock %}
+
+{% block content %}
+<section class="container">
+  <h1>Мои резюме</h1>
+  <div id="resumes-list" class="list"></div>
+  <p style="margin-top:1rem;"><a href="/resumes/new" class="btn btn--primary">Создать резюме</a></p>
+  <p id="resumes-error" style="color:#b91c1c; display:none;"></p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    if (!isAuthenticated()) {
+      window.location.href = "/login";
+      return;
+    }
+    const listEl = document.getElementById("resumes-list");
+    const errEl = document.getElementById("resumes-error");
+    try {
+      const items = await apiGet("/api/v1/resumes");
+      if (!items.length) {
+        listEl.innerHTML = '<p>Пока нет резюме.</p>';
+        return;
+      }
+      listEl.innerHTML = items.map(r => `
+        <article class="card">
+          <h3>${r.title}</h3>
+          <p>${(r.content || '').slice(0,160)}</p>
+          <div style="display:flex; gap:.5rem;">
+            <a class="btn" href="/resumes/new?edit=${r.id}">Редактировать</a>
+            <button class="btn btn--ghost" data-id="${r.id}" data-action="delete">Удалить</button>
+          </div>
+        </article>
+      `).join("");
+
+      listEl.addEventListener("click", async (e) => {
+        const btn = e.target.closest("button[data-action='delete']");
+        if (!btn) return;
+        const id = btn.getAttribute("data-id");
+        if (!confirm("Удалить резюме?")) return;
+        try {
+          const token = getToken();
+          const res = await fetch(`/api/v1/resumes/${id}`, {
+            method: 'DELETE',
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          });
+          if (!res.ok) throw new Error('Не удалось удалить');
+          location.reload();
+        } catch (err) {
+          alert(err.message || 'Ошибка удаления');
+        }
+      });
+    } catch (err) {
+      errEl.textContent = err.message || 'Не удалось загрузить список';
+      errEl.style.display = 'block';
+    }
+  });
+ </script>
+{% endblock %}
+

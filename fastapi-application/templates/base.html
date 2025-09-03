@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Resume App{% endblock %}</title>
+
+  <link rel="stylesheet" href="/static/css/main.css">
+  {% block head %}{% endblock %}
+</head>
+<body class="layout">
+
+  <header class="navbar">
+    <div class="navbar__left">
+      <nav class="nav">
+        <a href="/resumes">Резюме</a>
+        <a href="/resumes/new">Создать</a>
+        <a href="/docs" target="_blank" rel="noopener">API Docs</a>
+      </nav>
+    </div>
+
+    <div class="navbar__right">
+      <span id="user-chip" class="user-chip" style="display:none;"></span>
+      <button id="logout-btn" class="btn btn--ghost" style="display:none;">Выйти</button>
+      <a id="login-link" href="/login" class="btn">Войти</a>
+      <a id="register-link" href="/register" class="btn btn--primary">Регистрация</a>
+    </div>
+  </header>
+
+  {% if message %}
+    <div class="flash">{{ message }}</div>
+  {% endif %}
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <p>© {{ now().year if now else "" }} Resume App</p>
+  </footer>
+
+  <script src="/static/js/app.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

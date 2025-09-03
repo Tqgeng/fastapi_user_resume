@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Регистрация — Resume App{% endblock %}
+
+{% block content %}
+<section class="container">
+  <h1>Регистрация</h1>
+  <form id="register-form" class="card" style="max-width:480px;">
+    <label>
+      Email
+      <input type="email" id="reg-email" required placeholder="you@example.com" />
+    </label>
+    <label>
+      Пароль
+      <input type="password" id="reg-password" required minlength="3" placeholder="минимум 3 символа" />
+    </label>
+    <label>
+      Повторите пароль
+      <input type="password" id="reg-password2" required minlength="3" placeholder="ещё раз пароль" />
+    </label>
+
+    <button type="submit" class="btn btn--primary" style="width:100%; margin-top:0.75rem;">Создать аккаунт</button>
+    <p id="register-error" style="color:#b91c1c; margin-top:0.75rem; display:none;"></p>
+
+    <p style="margin-top:1rem;">
+      Уже есть аккаунт? <a href="/login">Войдите</a>
+    </p>
+  </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const REGISTER_URL = "/api/v1/auth/register";
+
+  const form = document.getElementById("register-form");
+  const errEl = document.getElementById("register-error");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errEl.style.display = "none";
+
+    const email = document.getElementById("reg-email").value.trim();
+    const password = document.getElementById("reg-password").value;
+    const password2 = document.getElementById("reg-password2").value;
+
+    if (password !== password2) {
+      errEl.textContent = "Пароли не совпадают";
+      errEl.style.display = "block";
+      return;
+    }
+
+    try {
+      const res = await fetch(REGISTER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(txt || ("Ошибка регистрации: " + res.status));
+      }
+
+      window.location.href = "/login";
+    } catch (err) {
+      errEl.textContent = err.message || "Не удалось зарегистрироваться";
+      errEl.style.display = "block";
+    }
+  });
+</script>
+{% endblock %}

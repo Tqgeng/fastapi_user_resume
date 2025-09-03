@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Главная — Resume App{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero__text">
+    <h1>Создавай и улучшай резюме</h1>
+    <p>Простое приложение: авторизация, список резюме, создание, просмотр и «улучшение» через AI-заглушку.</p>
+    {% if user %}
+      <a href="/resumes/new" class="btn btn--primary btn--lg">Создать резюме</a>
+      <a href="/resumes" class="btn btn--ghost btn--lg">Мои резюме</a>
+    {% else %}
+      <a href="/register" class="btn btn--primary btn--lg">Начать</a>
+      <a href="/login" class="btn btn--ghost btn--lg">У меня уже есть аккаунт</a>
+    {% endif %}
+  </div>
+</section>
+
+<section class="cards">
+  <article class="card">
+    <h3>Мои резюме</h3>
+    <p>Список, просмотр и удаление резюме.</p>
+    <a class="card__link" href="/resumes">Открыть</a>
+  </article>
+
+  <article class="card">
+    <h3>Создать резюме</h3>
+    <p>Быстрая форма создания нового резюме.</p>
+    <a class="card__link" href="/resumes/new">Перейти</a>
+  </article>
+
+  <article class="card">
+    <h3>Документация API</h3>
+    <p>Swagger UI со всеми эндпоинтами.</p>
+    <a class="card__link" href="/docs" target="_blank" rel="noopener">Открыть</a>
+  </article>
+</section>
+{% endblock %}

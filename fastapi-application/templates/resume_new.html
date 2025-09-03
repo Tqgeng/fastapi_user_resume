@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Новое резюме — Resume App{% endblock %}
+
+{% block content %}
+<section class="container">
+  <h1>Создать резюме</h1>
+  <form id="resume-form" class="card" style="max-width:720px;">
+    <label>
+      Заголовок
+      <input type="text" id="title" required placeholder="Например: Python Backend Developer" />
+    </label>
+    <label>
+      Содержимое
+      <textarea id="content" rows="10" required placeholder="Кратко опишите опыт, навыки и проекты..."></textarea>
+    </label>
+    <button type="submit" class="btn btn--primary">Создать</button>
+    <p id="resume-error" style="color:#b91c1c; display:none; margin-top:.75rem;"></p>
+  </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    if (!isAuthenticated()) {
+      window.location.href = "/login";
+      return;
+    }
+    const form = document.getElementById('resume-form');
+    const errEl = document.getElementById('resume-error');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errEl.style.display = 'none';
+      const title = document.getElementById('title').value.trim();
+      const content = document.getElementById('content').value.trim();
+
+      try {
+        await apiPost('/api/v1/resumes', { title, content });
+        window.location.href = '/resumes';
+      } catch (err) {
+        errEl.textContent = err.message || 'Не удалось создать резюме';
+        errEl.style.display = 'block';
+      }
+    });
+  });
+</script>
+{% endblock %}
+
