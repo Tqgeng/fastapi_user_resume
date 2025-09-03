@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Резюме — Resume App{% endblock %}
+
+{% block content %}
+<section class="container">
+  <article class="card" id="resume-card" style="max-width: 820px;">
+    <h1 id="rv-title">Резюме</h1>
+    <p id="rv-meta" style="margin-top:.25rem; color:#64748b;"></p>
+    <div id="rv-content" style="white-space: pre-wrap; margin-top: 1rem;"></div>
+
+    <div style="display:flex; gap:.5rem; margin-top:1rem;">
+      <button id="rv-improve" class="btn btn--primary">Улучшить</button>
+      <a href="/resumes" class="btn btn--ghost">Назад к списку</a>
+    </div>
+
+    <div id="improve-box" class="card" style="margin-top:1rem; display:none; background:#f8fafc;">
+      <h3 style="margin:0 0 .5rem;">Улучшенная версия</h3>
+      <div id="rv-improved" style="white-space: pre-wrap;"></div>
+    </div>
+
+    <p id="rv-error" style="color:#b91c1c; margin-top: .75rem; display:none;"></p>
+  </article>
+  
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function getPathId() {
+    const parts = location.pathname.split('/').filter(Boolean);
+    return Number(parts[1]);
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    if (!isAuthenticated()) { window.location.href = '/login'; return; }
+
+    const resumeId = getPathId();
+    const errEl = document.getElementById('rv-error');
+    const titleEl = document.getElementById('rv-title');
+    const metaEl = document.getElementById('rv-meta');
+    const contentEl = document.getElementById('rv-content');
+    const improvedWrap = document.getElementById('improve-box');
+    const improvedEl = document.getElementById('rv-improved');
+    const improveBtn = document.getElementById('rv-improve');
+
+    try {
+      const data = await apiGet(`/api/v1/resumes/${resumeId}`);
+      titleEl.textContent = data.title || `Резюме #${resumeId}`;
+      metaEl.textContent = `ID: ${data.id}`;
+      contentEl.textContent = data.content || '';
+    } catch (e) {
+      errEl.textContent = e.message || 'Не удалось загрузить резюме';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    improveBtn.addEventListener('click', async () => {
+      errEl.style.display = 'none';
+      improveBtn.disabled = true;
+      improveBtn.textContent = 'Улучшаю…';
+      try {
+        const token = getToken();
+        const res = await fetch(`/api/v1/resumes/${resumeId}/improve`, {
+          method: 'POST',
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (!res.ok) throw new Error('Ошибка улучшения');
+        const payload = await res.json();
+        improvedEl.textContent = payload.improved || '';
+        improvedWrap.style.display = 'block';
+      } catch (e) {
+        errEl.textContent = e.message || 'Не удалось улучшить резюме';
+        errEl.style.display = 'block';
+      } finally {
+        improveBtn.disabled = false;
+        improveBtn.textContent = 'Улучшить';
+      }
+    });
+  });
+</script>
+{% endblock %}
+

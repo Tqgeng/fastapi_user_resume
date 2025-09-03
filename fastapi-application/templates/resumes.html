@@ -30,27 +30,63 @@
           <h3>${r.title}</h3>
           <p>${(r.content || '').slice(0,160)}</p>
           <div style="display:flex; gap:.5rem;">
+            <a class="btn" href="/resumes/${r.id}">Открыть</a>
+            <button class="btn btn--primary" data-id="${r.id}" data-action="improve">Улучшить</button>
             <a class="btn" href="/resumes/new?edit=${r.id}">Редактировать</a>
             <button class="btn btn--ghost" data-id="${r.id}" data-action="delete">Удалить</button>
+          </div>
+          <div class="card" data-improved-for="${r.id}" style="display:none; margin-top:.5rem; background:#f8fafc;">
+            <h3 style="margin:0 0 .5rem;">Улучшенная версия</h3>
+            <div class="improved-text" style="white-space: pre-wrap;"></div>
           </div>
         </article>
       `).join("");
 
       listEl.addEventListener("click", async (e) => {
-        const btn = e.target.closest("button[data-action='delete']");
-        if (!btn) return;
-        const id = btn.getAttribute("data-id");
-        if (!confirm("Удалить резюме?")) return;
-        try {
-          const token = getToken();
-          const res = await fetch(`/api/v1/resumes/${id}`, {
-            method: 'DELETE',
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-          });
-          if (!res.ok) throw new Error('Не удалось удалить');
-          location.reload();
-        } catch (err) {
-          alert(err.message || 'Ошибка удаления');
+        const btnDelete = e.target.closest("button[data-action='delete']");
+        const btnImprove = e.target.closest("button[data-action='improve']");
+
+        if (btnDelete) {
+          const id = btnDelete.getAttribute("data-id");
+          if (!confirm("Удалить резюме?")) return;
+          try {
+            const token = getToken();
+            const res = await fetch(`/api/v1/resumes/${id}`, {
+              method: 'DELETE',
+              headers: token ? { Authorization: `Bearer ${token}` } : {},
+            });
+            if (!res.ok) throw new Error('Не удалось удалить');
+            location.reload();
+          } catch (err) {
+            alert(err.message || 'Ошибка удаления');
+          }
+          return;
+        }
+
+        if (btnImprove) {
+          const id = btnImprove.getAttribute("data-id");
+          const wrap = listEl.querySelector(`[data-improved-for='${id}']`);
+          const textEl = wrap ? wrap.querySelector('.improved-text') : null;
+          if (!wrap || !textEl) return;
+          const original = btnImprove.textContent;
+          btnImprove.disabled = true;
+          btnImprove.textContent = 'Улучшаю…';
+          try {
+            const token = getToken();
+            const res = await fetch(`/api/v1/resumes/${id}/improve`, {
+              method: 'POST',
+              headers: token ? { Authorization: `Bearer ${token}` } : {},
+            });
+            if (!res.ok) throw new Error('Не удалось улучшить');
+            const payload = await res.json();
+            textEl.textContent = payload.improved || '';
+            wrap.style.display = 'block';
+          } catch (err) {
+            alert(err.message || 'Ошибка улучшения');
+          } finally {
+            btnImprove.disabled = false;
+            btnImprove.textContent = original;
+          }
         }
       });
     } catch (err) {
@@ -60,4 +96,3 @@
   });
  </script>
 {% endblock %}
-

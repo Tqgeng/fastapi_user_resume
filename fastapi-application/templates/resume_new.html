@@ -3,7 +3,7 @@
 
 {% block content %}
 <section class="container">
-  <h1>Создать резюме</h1>
+  <h1 id="page-title">Создать резюме</h1>
   <form id="resume-form" class="card" style="max-width:720px;">
     <label>
       Заголовок
@@ -13,7 +13,7 @@
       Содержимое
       <textarea id="content" rows="10" required placeholder="Кратко опишите опыт, навыки и проекты..."></textarea>
     </label>
-    <button type="submit" class="btn btn--primary">Создать</button>
+    <button type="submit" id="submit-btn" class="btn btn--primary">Создать</button>
     <p id="resume-error" style="color:#b91c1c; display:none; margin-top:.75rem;"></p>
   </form>
 </section>
@@ -21,28 +21,60 @@
 
 {% block scripts %}
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    if (!isAuthenticated()) {
-      window.location.href = "/login";
-      return;
-    }
+  document.addEventListener("DOMContentLoaded", async () => {
+    if (!isAuthenticated()) { window.location.href = "/login"; return; }
+
+    const params = new URLSearchParams(location.search);
+    const editId = params.get('edit');
+
     const form = document.getElementById('resume-form');
     const errEl = document.getElementById('resume-error');
+    const titleInput = document.getElementById('title');
+    const contentInput = document.getElementById('content');
+    const pageTitle = document.getElementById('page-title');
+    const submitBtn = document.getElementById('submit-btn');
+
+    if (editId) {
+      try {
+        const data = await apiGet(`/api/v1/resumes/${editId}`);
+        titleInput.value = data.title || '';
+        contentInput.value = data.content || '';
+        pageTitle.textContent = 'Редактировать резюме';
+        submitBtn.textContent = 'Сохранить';
+      } catch (e) {
+        errEl.textContent = e.message || 'Не удалось загрузить резюме';
+        errEl.style.display = 'block';
+        return;
+      }
+    }
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       errEl.style.display = 'none';
-      const title = document.getElementById('title').value.trim();
-      const content = document.getElementById('content').value.trim();
+      const title = titleInput.value.trim();
+      const content = contentInput.value.trim();
 
       try {
-        await apiPost('/api/v1/resumes', { title, content });
+        if (editId) {
+          const token = getToken();
+          const res = await fetch(`/api/v1/resumes/${editId}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify({ title, content }),
+          });
+          if (!res.ok) throw new Error('Не удалось сохранить');
+        } else {
+          await apiPost('/api/v1/resumes', { title, content });
+        }
         window.location.href = '/resumes';
       } catch (err) {
-        errEl.textContent = err.message || 'Не удалось создать резюме';
+        errEl.textContent = err.message || (editId ? 'Не удалось сохранить' : 'Не удалось создать резюме');
         errEl.style.display = 'block';
       }
     });
   });
 </script>
 {% endblock %}
-
