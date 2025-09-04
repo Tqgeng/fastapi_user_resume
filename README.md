@@ -68,3 +68,5 @@ fastapi-application/
 - **utils/** - удобное наименование для миграций
 - **main.py** - запускает FastAPI-приложение.
 
+### Ссылка на задеплоенное приложение:
+https://fastapiuserresume-production.up.railway.app/
